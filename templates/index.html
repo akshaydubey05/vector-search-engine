@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vector Search Engine</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Vector Search Engine</h1>
+    <button onclick="startVoice()">Start Voice Search</button>
+    <div id="query"></div>
+    <div id="results"></div>
+
+    <script>
+        let recognition;
+        function startVoice() {
+            const constraints = { audio: true };
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then(stream => {
+                    recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+                    recognition.onresult = event => {
+                        const query = event.results[0][0].transcript;
+                        $('#query').text(`Recognized: ${query}`);
+                        $.get('/search', {q: query}, data => {
+                            $('#results').empty();
+                            data.results.forEach(r => {
+                                $('#results').append(`<p>Relevance: ${r[0].toFixed(6)}, Snippet: ${r[1]}</p>`);
+                            });
+                        });
+                    };
+                    recognition.start();
+                })
+                .catch(err => console.error('Microphone access denied:', err));
+        }
+    </script>
+</body>
+</html>
